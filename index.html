@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Login App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2ff;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 85%;
+      max-width: 350px;
+      box-shadow: 0 5px 20px #0002;
+    }
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 13px;
+      margin: 9px 0;
+      border-radius: 7px;
+    }
+    input { border: 1px solid #ccc; }
+    button {
+      background: #2457d6;
+      color: white;
+      border: 0;
+      font-weight: bold;
+    }
+    h2 { text-align: center; }
+    #message { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome</h2>
+    <div id="forms">
+      <input id="email" type="email" placeholder="Email address">
+      <input id="password" type="password" placeholder="Password">
+      <button onclick="showMessage()">Login</button>
+      <button onclick="showMessage()">Register</button>
+      <p id="message"></p>
+    </div>
+  </div>
+  <script>
+    function showMessage() {
+      document.getElementById("message").textContent =
+        "Next step: connect secure authentication.";
+    }
+  </script>
+</body>
+</html>
