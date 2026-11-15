@@ -2,60 +2,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Login App</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #eef2ff;
-      display: grid;
-      place-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      width: 85%;
-      max-width: 350px;
-      box-shadow: 0 5px 20px #0002;
-    }
-    input, button {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 13px;
-      margin: 9px 0;
-      border-radius: 7px;
-    }
-    input { border: 1px solid #ccc; }
-    button {
-      background: #2457d6;
-      color: white;
-      border: 0;
-      font-weight: bold;
-    }
-    h2 { text-align: center; }
-    #message { text-align: center; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Login App</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#101b45,#2457d6);
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:20px;
+}
+.card{
+  background:white;
+  padding:30px;
+  border-radius:18px;
+  width:100%;
+  max-width:390px;
+  box-shadow:0 10px 35px #0004;
+}
+h2{text-align:center;color:#193b91}
+input,button{
+  width:100%;
+  padding:14px;
+  margin:9px 0;
+  border-radius:8px;
+  font-size:15px;
+}
+input{border:1px solid #ccc}
+button{
+  background:#2457d6;
+  color:white;
+  border:0;
+  font-weight:bold;
+  cursor:pointer;
+}
+.switch{text-align:center;margin-top:18px}
+.switch a{color:#2457d6;cursor:pointer}
+#message{text-align:center;font-size:14px}
+.hidden{display:none}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h2>Welcome</h2>
-    <div id="forms">
-      <input id="email" type="email" placeholder="Email address">
-      <input id="password" type="password" placeholder="Password">
-      <button onclick="showMessage()">Login</button>
-      <button onclick="showMessage()">Register</button>
-      <p id="message"></p>
-    </div>
+
+<div class="card">
+  <h2>Welcome</h2>
+  <p style="text-align:center">Your account starts here</p>
+
+  <form id="registerForm" class="hidden">
+    <input id="regEmail" type="email"
+      placeholder="Email address" required>
+    <input id="regPassword" type="password"
+      placeholder="Create password" minlength="6" required>
+    <button type="submit">Create Account</button>
+    <p class="switch">Already registered?
+      <a id="showLogin">Login</a>
+    </p>
+  </form>
+
+  <form id="loginForm">
+    <input id="loginEmail" type="email"
+      placeholder="Email address" required>
+    <input id="loginPassword" type="password"
+      placeholder="Password" required>
+    <button type="submit">Login</button>
+    <p class="switch">New user?
+      <a id="showRegister">Register</a>
+    </p>
+  </form>
+
+  <div id="dashboard" class="hidden">
+    <h3>Login successful!</h3>
+    <p id="userEmail"></p>
+    <button id="logout">Logout</button>
   </div>
-  <script>
-    function showMessage() {
-      document.getElementById("message").textContent =
-        "Next step: connect secure authentication.";
-    }
-  </script>
+
+  <p id="message"></p>
+</div>
+
+<script type="module">
+import { supabase } from './config.js';
+
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const dashboard = document.getElementById('dashboard');
+const message = document.getElementById('message');
+
+function showMessage(text){
+  message.textContent = text;
+}
+
+document.getElementById('showRegister').onclick = () => {
+  loginForm.classList.add('hidden');
+  registerForm.classList.remove('hidden');
+  showMessage('');
+};
+
+document.getElementById('showLogin').onclick = () => {
+  registerForm.classList.add('hidden');
+  loginForm.classList.remove('hidden');
+  showMessage('');
+};
+
+function showDashboard(email){
+  loginForm.classList.add('hidden');
+  registerForm.classList.add('hidden');
+  dashboard.classList.remove('hidden');
+  document.getElementById('userEmail').textContent =
+    'Welcome, ' + email;
+}
+
+registerForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showMessage('Creating account...');
+
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+
+  const {data, error} = await supabase.auth.signUp({
+    email, password
+  });
+
+  if(error){
+    showMessage(error.message);
+  } else if(data.session){
+    showDashboard(data.user.email);
+    showMessage('Account created successfully!');
+  } else {
+    showMessage('Registration successful! Check your email to confirm your account.');
+  }
+});
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showMessage('Signing in...');
+
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  const {data, error} = await supabase.auth.signInWithPassword({
+    email, password
+  });
+
+  if(error){
+    showMessage(error.message);
+  } else {
+    showDashboard(data.user.email);
+    showMessage('Welcome back!');
+  }
+});
+
+document.getElementById('logout').onclick = async () => {
+  const {error} = await supabase.auth.signOut();
+
+  if(error){
+    showMessage(error.message);
+  } else {
+    dashboard.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+    showMessage('You have logged out.');
+  }
+};
+
+const {data:{session}} = await supabase.auth.getSession();
+
+if(session){
+  showDashboard(session.user.email);
+}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if(event === 'SIGNED_IN' && session){
+    showDashboard(session.user.email);
+  }
+});
+</script>
+
 </body>
 </html>
